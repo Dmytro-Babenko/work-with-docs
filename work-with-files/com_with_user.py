@@ -1,5 +1,5 @@
 from pathlib import Path
-from openpyxl import load_workbook
+from work_with_exel import is_sheet_exist
 def get_path(word: str, parent_folder=None) -> Path:
     n_p = 'name' if parent_folder else 'path'
     inp = input(f'Write {n_p} of the {word}: ')
@@ -16,10 +16,43 @@ def get_path(word: str, parent_folder=None) -> Path:
 
 def get_sheet_name(exel_path: Path, word: str) -> str:
     name = input(f'Write name of the exel sheet with {word}: ')
-    exel_file = load_workbook(exel_path)
-    while name not in exel_file.sheetnames:
+    while not is_sheet_exist(exel_path, name):
         name = input(f'There no this sheet in the file. Write name of the exel sheet with {word}: ')
     return name
+
+def ask_to_crate_worksheet(exel_path: Path, sheet_name: str) -> str:
+    while not is_sheet_exist(exel_path, sheet_name):
+        input(f'There no list {sheet_name} in the {exel_path.name}, please create it, save and press Enter')
+
+
+# def settings_confirmation(setting: dict, *exceptions) -> bool:
+#     for category, value in setting.items():
+#         if not value or category in exceptions:
+#             continue
+        
+#         confirmation = input(f'{category}: {value}\nIf you confirm print "yes", else - "no" and press Enter: ')
+#         while True:
+#             confirmation = confirmation.lower().strip()
+#             if confirmation == 'yes':
+#                 break
+#             elif confirmation == 'no':
+#                 setting[category] = None
+#                 break
+#             else:
+#                 confirmation = input('Sorry, write "yes" to confirm, or "no" in others cases: ')
+#     return setting
+
+def is_setting_confirm(category, value) -> bool:
+    confirmation = input(f'\n{category}: {value}\nIf you confirm print "yes", else - "no" and press Enter: ')
+    while True:
+        confirmation = confirmation.lower().strip()
+        if confirmation == 'yes':
+            return True
+        elif confirmation == 'no':
+            return False
+        else:
+            confirmation = input('Sorry, write "yes" to confirm, or "no" in others cases: ')
+
 
 
 

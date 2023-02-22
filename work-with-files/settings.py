@@ -17,6 +17,9 @@ MAIN_SETTINGS = {
     'Result folder': None
 }
 
+# констнта типов 
+# функция исходя из типа определяет функцию которую надо использовать для определения настройки
+
 def reset_settings(settings: dict, *exeptions) -> dict:
     for key in settings.keys():
         if key not in exeptions:
@@ -39,9 +42,9 @@ def get_main_default_settings(main_settings: dict) -> dict:
         main_settings['Result folder'].mkdir()
     return main_settings
 
-def get_user_setting(category, settings: dict):
-    if category == 'Sheet with chsrts':
-        old_name = get_sheet_name(settings['Exel'], 'text info')
+def get_user_setting(category, settings: dict): # функция возвращает функцию переписать, для разных параметров переписать через дикораторы
+    if category == 'Sheet with charts':
+        old_name = get_sheet_name(settings['Exel'], 'charts')
         rename_sheet(settings['Exel'], old_name, GRAPH_SYMBOL)
         return GRAPH_SYMBOL
 
@@ -70,7 +73,6 @@ def get_user_settings(settings: dict, *extention) -> dict:
 def get_main_user_settings():
     main_settings = get_main_default_settings(MAIN_SETTINGS)
     main_settings = get_user_settings(main_settings, 'base_folder', 'Sheet with charts', 'Result folder')
-    ask_to_crate_worksheet(main_settings['Exel'], GRAPH_SYMBOL)
     return main_settings
         
 

@@ -14,6 +14,8 @@ def get_path(word: str, parent_folder=None) -> Path:
             path = parent_folder.joinpath(inp) if parent_folder else Path(inp)
     return path
 
+    
+
 def get_sheet_name(exel_path: Path, word: str) -> str:
     name = input(f'Write name of the exel sheet with {word}: ')
     while not is_sheet_exist(exel_path, name):
@@ -23,24 +25,7 @@ def get_sheet_name(exel_path: Path, word: str) -> str:
 def ask_to_crate_worksheet(exel_path: Path, sheet_name: str) -> str:
     while not is_sheet_exist(exel_path, sheet_name):
         input(f'There no list {sheet_name} in the {exel_path.name}, please create it, save and press Enter')
-
-
-# def settings_confirmation(setting: dict, *exceptions) -> bool:
-#     for category, value in setting.items():
-#         if not value or category in exceptions:
-#             continue
-        
-#         confirmation = input(f'{category}: {value}\nIf you confirm print "yes", else - "no" and press Enter: ')
-#         while True:
-#             confirmation = confirmation.lower().strip()
-#             if confirmation == 'yes':
-#                 break
-#             elif confirmation == 'no':
-#                 setting[category] = None
-#                 break
-#             else:
-#                 confirmation = input('Sorry, write "yes" to confirm, or "no" in others cases: ')
-#     return setting
+    pass
 
 def is_setting_confirm(category, value) -> bool:
     confirmation = input(f'\n{category}: {value}\nIf you confirm print "yes", else - "no" and press Enter: ')
@@ -52,6 +37,9 @@ def is_setting_confirm(category, value) -> bool:
             return False
         else:
             confirmation = input('Sorry, write "yes" to confirm, or "no" in others cases: ')
+
+
+
 
 
 

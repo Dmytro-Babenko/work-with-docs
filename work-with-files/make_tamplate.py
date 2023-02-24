@@ -1,9 +1,7 @@
 from pathlib import Path
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Cm
-from docx import Document
-from com_with_user import get_path
-from settings import GRAPH_SYMBOL
+from settings import TEMPLATE_SETTINGS, get_settings
     
 def create_image_template(doc: DocxTemplate, folder: Path, symb: str) -> None:
     placeholders = {}
@@ -14,16 +12,16 @@ def create_image_template(doc: DocxTemplate, folder: Path, symb: str) -> None:
             place = f'{symb}{i}'
             placeholders[place] = placeholder
             i += 1
-    doc.render(placeholders)
-    doc.save('test1.docx')
-    pass
+    return placeholders
 
 def main():
-    doc_path = get_path('template Word')
-    base_folder = doc_path.parent
-    temp_image_folder = get_path('folder with template image', parent_folder=base_folder)
+    template_settings = get_settings(TEMPLATE_SETTINGS)
+    doc_path = template_settings['template Word']
+    temp_image_folder = template_settings['folder with tamplates']
     doc = DocxTemplate(doc_path)
-    create_image_template(doc, temp_image_folder, GRAPH_SYMBOL)
+    placeholders = create_image_template(doc, temp_image_folder, temp_image_folder.name)
+    doc.render(placeholders)
+    doc.save(doc_path)
     pass
 
 if __name__ == '__main__':

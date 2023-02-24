@@ -11,13 +11,20 @@ MAIN_SETTINGS = {
     'Result folder': None
 }
 
+TEMPLATE_SETTINGS = {
+    'base_folder': None,
+    'template Word': None,
+    'folder with tamplates': None,
+}
 
 BASE = {
     'Exel': 'base_folder',
     'Word': 'base_folder',
     'Sheet with information': 'Exel',
     'Sheet with charts': 'Exel',
-    'Result folder': 'base_folder'
+    'Result folder': 'base_folder',
+    'template Word':'base_folder',
+    'folder with tamplates': 'base_folder'
 }
    
 USER_SETTINGS_FUNC = {
@@ -27,17 +34,28 @@ USER_SETTINGS_FUNC = {
     'Sheet with information': get_sheet_name,
     'Sheet with charts': rename_sheet,
     'Result file name': funcs_for_settings.get_name,
-    'Result folder': funcs_for_settings.get_name
+    'Result folder': funcs_for_settings.get_name,
+    'template Word': funcs_for_settings.get_path_by_name,
+    'folder with tamplates': funcs_for_settings.get_path_by_name
 }
 
 DEFOULT_SETTINGS_FUNC = {
     'base_folder': funcs_for_settings.no_defoult_settings,
-    'Exel': funcs_for_settings.get_defoult_exel,
-    'Word': funcs_for_settings.get_defoult_doc,
+    'Exel': funcs_for_settings.get_defoult_by_pattern,
+    'Word': funcs_for_settings.get_defoult_by_pattern,
     'Sheet with information': funcs_for_settings.get_defoult_infosheet,
     'Sheet with charts': funcs_for_settings.get_defoult_chartsheet,
     'Result file name': funcs_for_settings.no_defoult_settings,
-    'Result folder': funcs_for_settings.get_defoult_resultfolder
+    'Result folder': funcs_for_settings.get_defoult_resultfolder,
+    'template Word': funcs_for_settings.get_defoult_by_pattern,
+    'folder with tamplates': funcs_for_settings.get_defoult_by_pattern
+}
+
+DEFOULT_PATTERNS = {
+    'Word': f'*{funcs_for_settings.TEMPLATE_SYMBOL}*.docx',
+    'template Word': f'*{funcs_for_settings.TEMPLATE_SYMBOL}*.docx',
+    'Exel': f'*{funcs_for_settings.TEMPLATE_SYMBOL}*.xlsx',
+    'folder with tamplates': funcs_for_settings.GRAPH_SYMBOL
 }
 
 def choose_func(element, hendler):
@@ -51,8 +69,9 @@ def get_settings(settings: dict):
     
     for element in settings:
         base = choose_base(element)
+        pattern = DEFOULT_PATTERNS.get(element)
         get_defoult_value = choose_func(element, DEFOULT_SETTINGS_FUNC)
-        settings[element] = get_defoult_value(base)
+        settings[element] = get_defoult_value(base, pattern)
         value = settings[element]
         is_confirm = funcs_for_settings.confirmation(element, value)
         if not is_confirm:
@@ -60,5 +79,6 @@ def get_settings(settings: dict):
             settings[element] = get_user_value(element, base, funcs_for_settings.GRAPH_SYMBOL)
     return settings
 
-MAIN_SETTINGS = get_settings(MAIN_SETTINGS)
+# MAIN_SETTINGS = get_settings(MAIN_SETTINGS)
+# TEMPLATE_SETTINGS = get_settings(TEMPLATE_SETTINGS)
 

@@ -25,8 +25,7 @@ def export_image(exel_file: Path, sheet_name='gr') -> dict[str:Path]: #деко�
     '''
     graphs = {}
     gr_folder = exel_file.parent.joinpath(sheet_name)
-    if not gr_folder.exists():
-        gr_folder.mkdir()
+    gr_folder.mkdir(exist_ok=True)
     app = Dispatch('Excel.Application')
     wb = app.Workbooks.Open(Filename=exel_file)
     app.DisplayAlerts = False
@@ -90,6 +89,7 @@ def get_sheet_name(element, base, *args):
     return sheet_name
 
 def rename_sheet(element, base, new_name, *args):
+    '''Rename Exel sheet from old name to new'''
     book = load_workbook(base)
     old_name = get_sheet_name(element, base)
     book[old_name].title = new_name

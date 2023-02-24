@@ -6,29 +6,41 @@ TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
 EXTENTION = ['Sheet with charts']
     
-def get_defoult_doc(base: Path):
-    pattern = f'*{TEMPLATE_SYMBOL}*.docx'
-    output = next(base.glob(pattern))
+# def get_defoult_doc(base: Path):
+#     pattern = f'*{TEMPLATE_SYMBOL}*.docx'
+#     output = next(base.glob(pattern))
+#     return output
+
+# def get_defoult_exel(base:Path):
+#     pattern = f'*{TEMPLATE_SYMBOL}*.xlsx'
+#     output = next(base.glob(pattern))
+#     return output
+
+# def get_defoult_gr_folder(base:Path):
+#     pattern = GRAPH_SYMBOL
+#     output = next(base.glob(pattern))
+#     return output
+
+def get_defoult_by_pattern(base: Path, pattern: str):
+    try:
+        output = next(base.glob(pattern))
+    except:
+        return None
     return output
 
-def get_defoult_exel(base:Path):
-    pattern = f'*{TEMPLATE_SYMBOL}*.xlsx'
-    output = next(base.glob(pattern))
-    return output
-
-def get_defoult_infosheet(base:Path):
+def get_defoult_infosheet(base:Path, *args):
     return first_sheet_name(base)
 
-def get_defoult_chartsheet(base:Path):
+def get_defoult_chartsheet(base:Path, *args):
     if is_sheet_exist(base, GRAPH_SYMBOL):
         return GRAPH_SYMBOL
     return None
 
-def get_defoult_resultfolder(base: Path):
+def get_defoult_resultfolder(*args):
     output = RESULT_FOLDER_NAME
     return output
 
-def no_defoult_settings(base: Path):
+def no_defoult_settings(*args):
     return None
 
 def confirmation(element, value) -> bool:

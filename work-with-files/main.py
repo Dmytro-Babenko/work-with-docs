@@ -2,10 +2,10 @@
 from work_with_exel import get_info_from_exel, export_image
 from docxtpl import DocxTemplate
 from clean_folder.sort import find_free_name
-from settings import MAIN_SETTINGS
+from settings import MAIN_SETTINGS, get_settings
 
 def main():
-    main_settings = MAIN_SETTINGS
+    main_settings = get_settings(MAIN_SETTINGS)
     base_folder = main_settings['base_folder']
     exel_path = main_settings['Exel']
     doc_path = main_settings['Word']

@@ -76,16 +76,15 @@ def get_fullpath(element, *args):
 @existing_sheet
 def get_sheet_name(element, base, *args):
     sheet_name = input(f'\nWrite name of the {element}: ')
-    if sheet_name not in load_workbook(base).sheetnames:
+    if not is_sheet_exist(base, sheet_name):
         sheet_name = None
     return sheet_name
-
 
 def rename_sheet(element, base, new_name, *args):
     book = load_workbook(base)
     old_name = get_sheet_name(element, base)
-    book[old_name].name = new_name
-    book.save(str(base.absolute())) #разобраться
+    book[old_name].title = new_name
+    book.save(base)
     book.close()
     return new_name
 
@@ -139,7 +138,7 @@ DEFOULT_SETTINGS_FUNC = {
 }
 
 def choose_func(element, hendler):
-    return hendler[element]
+    return hendler.get(element)
 
 def get_settings(settings: dict):
     
@@ -160,11 +159,3 @@ def get_settings(settings: dict):
 
 MAIN_SETTINGS = get_settings(MAIN_SETTINGS)
 
-
-
-# path = Path(r'D:\test').glob('*бланк*.docx')
-# print(next(path))
-# for i in path:
-#     print(i)
-
-# Path(r'D:\test\1').mkdir(exist_ok=True)

@@ -3,8 +3,7 @@ from work_with_exel import get_info_from_exel, export_image
 from docxtpl import DocxTemplate
 from clean_folder.sort import find_free_name
 from settings import get_main_user_settings
-from rewrie import MAIN_SETTINGS
-print(MAIN_SETTINGS)
+
 
 def main():
     main_settings = get_main_user_settings()

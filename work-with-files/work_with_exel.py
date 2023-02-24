@@ -60,18 +60,43 @@ def is_sheet_exist(exel_file: Path, sheet_name: str) -> bool:
         wb.close()
         return False
         
-def rename_sheet(exel_file: Path, old_sheet_name: str, new_sheet_name: str) -> None:
-    '''
-    Rename Exel sheet from old name to new. 
-    If sheet with this name doesnt exist, create sheet with new name.
-    '''
-    book = load_workbook(exel_file)
-    if old_sheet_name in book.sheetnames:
-        book[old_sheet_name].name = new_sheet_name
-    else:
-        book.create_sheet(new_sheet_name)
-    book.save(exel_file)
-    pass
+# def rename_sheet(exel_file: Path, old_sheet_name: str, new_sheet_name: str) -> None:
+#     '''
+#     Rename Exel sheet from old name to new. 
+#     If sheet with this name doesnt exist, create sheet with new name.
+#     '''
+#     book = load_workbook(exel_file)
+#     if old_sheet_name in book.sheetnames:
+#         book[old_sheet_name].name = new_sheet_name
+#     else:
+#         book.create_sheet(new_sheet_name)
+#     book.save(exel_file)
+#     pass
+
+def existing_sheet(func):
+    def inner(element, *args, **kwargs):
+        output = func(element, *args, **kwargs)
+        while not output:
+            print('There no such sheet on exel file')
+            output = func(element,  *args, **kwargs)
+        return output
+    return inner
+
+@existing_sheet
+def get_sheet_name(element, base, *args):
+    sheet_name = input(f'\nWrite name of the {element}: ')
+    if not is_sheet_exist(base, sheet_name):
+        sheet_name = None
+    return sheet_name
+
+def rename_sheet(element, base, new_name, *args):
+    book = load_workbook(base)
+    old_name = get_sheet_name(element, base)
+    book[old_name].title = new_name
+    book.save(base)
+    book.close()
+    return new_name
+
 
 
 

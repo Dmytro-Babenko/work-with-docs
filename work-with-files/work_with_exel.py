@@ -18,7 +18,7 @@ def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     wb.close()
     return info
 
-def export_image(exel_file: Path, sheet_name='gr') -> dict[str:Path]:
+def export_image(exel_file: Path, sheet_name='gr') -> dict[str:Path]: #декоратор создания папки
     '''
     Save all charts in Exel sheet to the folder, with Exel_sheet name
     Return dictionary with images name and path
@@ -70,7 +70,7 @@ def rename_sheet(exel_file: Path, old_sheet_name: str, new_sheet_name: str) -> N
         book[old_sheet_name].name = new_sheet_name
     else:
         book.create_sheet(new_sheet_name)
-    book.save()
+    book.save(exel_file)
     pass
 
 

@@ -1,10 +1,12 @@
 from pathlib import Path
 from work_with_exel import is_sheet_exist
+
+
 def get_path(word: str, parent_folder=None) -> Path:
     n_p = 'name' if parent_folder else 'path'
     inp = input(f'Write {n_p} of the {word}: ')
-    if parent_folder:
-        path = parent_folder.joinpath(inp)
+    # if parent_folder:
+    #     path = parent_folder.joinpath(inp)
     path = parent_folder.joinpath(inp) if parent_folder else Path(inp)
     while True:
         if path.exists():
@@ -13,8 +15,6 @@ def get_path(word: str, parent_folder=None) -> Path:
             inp = input(f'Write {n_p} of the {word}: ')
             path = parent_folder.joinpath(inp) if parent_folder else Path(inp)
     return path
-
-    
 
 def get_sheet_name(exel_path: Path, word: str) -> str:
     name = input(f'Write name of the exel sheet with {word}: ')

@@ -23,6 +23,7 @@ BASE = {
     'Sheet with information': 'Exel',
     'Sheet with charts': 'Exel',
     'Result folder': 'base_folder',
+    'Result file name': 'base_folser',
     'template Word':'base_folder',
     'folder with tamplates': 'base_folder'
 }
@@ -62,7 +63,7 @@ def choose_func(element, hendler):
     return hendler.get(element)
 
 def get_settings(settings: dict):
-    
+
     def choose_base(element):
         base = settings.get(BASE.get(element))
         return base
@@ -79,6 +80,6 @@ def get_settings(settings: dict):
             settings[element] = get_user_value(element, base, funcs_for_settings.GRAPH_SYMBOL)
     return settings
 
-# MAIN_SETTINGS = get_settings(MAIN_SETTINGS)
+MAIN_SETTINGS = get_settings(MAIN_SETTINGS)
 # TEMPLATE_SETTINGS = get_settings(TEMPLATE_SETTINGS)
 

@@ -29,10 +29,12 @@ def get_defoult_by_pattern(base: Path, pattern: str):
     return output
 
 def get_defoult_infosheet(base:Path, *args):
-    return first_sheet_name(base)
+    if base.suffix == '.xlsx':
+        return first_sheet_name(base)
+    return None
 
 def get_defoult_chartsheet(base:Path, *args):
-    if is_sheet_exist(base, GRAPH_SYMBOL):
+    if base.suffix == '.xlsx' and is_sheet_exist(base, GRAPH_SYMBOL):
         return GRAPH_SYMBOL
     return None
 

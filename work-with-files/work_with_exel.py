@@ -1,6 +1,7 @@
 from pathlib import Path
 from openpyxl import load_workbook
 from win32com.client import Dispatch
+from funcs_for_settings import GRAPH_SYMBOL
 
 def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     '''

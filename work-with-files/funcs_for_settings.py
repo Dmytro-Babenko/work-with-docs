@@ -73,6 +73,16 @@ def existing_path(func):
         return output
     return inner
 
+def checking(func):
+    def inner(element, *args, **kwargs):
+        output = func(element, *args, **kwargs)
+        if output:
+            return True
+        else:
+            error_message = f'There are no such {element}'
+            return False, error_message
+    return inner
+
 @existing_path
 def get_path_by_name(element, base, *args):
     inp = input(f'\nWrite name of the {element}: ')
@@ -87,6 +97,22 @@ def get_fullpath(element, *args):
 def get_name(element, *args):
     name = input(f'\n{element}: ')
     return name
+
+def is_path_exist(value, *args):
+    if value:
+        path = Path(value)
+        return path.exists()
+    return False
+
+def is_sheet(value, base, *args):
+    return is_sheet_exist(base, value)
+
+def no_checking(value, *args):
+    if value:
+        return True
+    return False
+
+print(is_path_exist('word', ''))
 
 
 

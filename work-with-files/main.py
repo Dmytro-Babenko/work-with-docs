@@ -2,17 +2,18 @@
 from work_with_exel import get_info_from_exel, export_image
 from docxtpl import DocxTemplate
 from clean_folder.sort import find_free_name
-from settings import MAIN_SETTINGS, get_settings
+from pathlib import Path
 
-def main():
-    main_settings = get_settings(MAIN_SETTINGS)
-    base_folder = main_settings['base_folder']
-    exel_path = main_settings['Exel']
-    doc_path = main_settings['Word']
-    text_sheet = main_settings['Sheet with information']
-    graph_sheet = main_settings['Sheet with charts']
-    result_file_name = main_settings['Result file name']
-    result_folder = main_settings['Result folder']
+
+def make_it(main_settings):
+    # main_settings = get_settings(settings)
+    exel_path = Path(main_settings['exel'])
+    doc_path = Path(main_settings['word'])
+    text_sheet = main_settings['sheet with information']
+    graph_sheet = main_settings['sheet with charts']
+    result_file_name = main_settings['result file name']
+    result_folder = main_settings['result folder']
+    base_folder = exel_path.parent
 
     info = get_info_from_exel(exel_path, text_sheet)
     graphs = export_image(exel_path, graph_sheet)
@@ -34,4 +35,4 @@ def main():
     pass
 
 if __name__ == '__main__':
-    main()
+    main(MAIN_SETTINGS)

@@ -1,7 +1,6 @@
 from pathlib import Path
-from work_with_exel import is_sheet_exist, first_sheet_name
+from work_with_exel import is_sheet_exist, first_sheet_name, GRAPH_SYMBOL
 
-GRAPH_SYMBOL = 'gr'
 TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
 EXTENTION = ['Sheet with charts']

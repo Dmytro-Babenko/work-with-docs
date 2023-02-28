@@ -72,19 +72,17 @@ BASE = {
 def choose_func(element, hendler):
     return hendler.get(element)
 
-def make_fields(settings, root):
+def make_fields(settings, root: tkt.Tk):
+    field_variables = {}
+
     def get_settings():
-        root_elements = root.children.values()
         is_ok = True
-        for k, v in zip(
-            filter(lambda y: isinstance(y, tkt.Label), root_elements),
-            filter(lambda y: isinstance(y, tkt.Entry), root_elements)):
-            element = k.cget('text')
-            value = v.get()
+        for element, var in field_variables.items():
+            value= var.get()
             func = choose_func(element, CONFIRMATION)
-            base = choose_func(element, BASE)(Path(value_var.get()))
-            result = func(value, base)
-            if result == True:
+            base = choose_func(element, BASE)(Path(field_variables['exel'].get()))
+            comfirmation = func(value, base)
+            if comfirmation == True:
                 settings[element] = value
             else:
                 error = f'{element.upper()}: irrelevant value'
@@ -97,6 +95,11 @@ def make_fields(settings, root):
                 make_it(settings)
         pass
     
+    def reset():
+        for var in field_variables.values():
+            var.set('')
+        pass
+    
     def entry_rewrite(element, value):
         entry = root.children[f'e_{element}']
         entry.delete(0, tkt.END)
@@ -104,13 +107,19 @@ def make_fields(settings, root):
             entry.insert(0, value)
         pass
 
+    def var_rewrite(element, value):
+        var = field_variables.get(element)
+        value = value if value else ''
+        var.set(value)
+        pass
+
     def update(*args):
         for element in filter(lambda x: x not in KEY_ELEMENTS, settings):
             func = choose_func(element, DEFOULT_SETTINGS_FUNC)
             pattern = DEFOULT_PATTERNS.get(element)
-            base = choose_func(element, BASE)(Path(value_var.get()))
+            base = choose_func(element, BASE)(Path(field_variables['exel'].get()))
             defoult_value = func(base, pattern)
-            entry_rewrite(element, defoult_value)
+            var_rewrite(element, defoult_value)
         pass
 
     def get_path(element):
@@ -119,7 +128,7 @@ def make_fields(settings, root):
             kwargs = FILES_GROUPS[element][1]
             selected = func(**kwargs)
             selected_path = Path(selected)
-            entry_rewrite(element, selected_path)
+            var_rewrite(element, selected_path)
             pass
         return inner  
     
@@ -130,77 +139,57 @@ def make_fields(settings, root):
 
     def make_button(position, element):
         command = get_path(element)
-        button = tkt.Button(root, text='...', name=f'b_{element}', command=command)
+        button = tkt.Button(root, text='Choose', name=f'b_{element}', command=command)
         button.grid(row=position, column=2, padx = 2)
         pass
 
-    def make_entry(position, element):
-        if element in KEY_ELEMENTS:
-            entry = tkt.Entry(root, borderwidth=2, width=40, name=f'e_{element}', textvariable=value_var)
-        else:
-            entry = tkt.Entry(root, borderwidth=2, width=40, name=f'e_{element}')
-        entry.grid(row=position, column=1, sticky=tkt.W, padx = 2)
-        pass
-        
-    def make_row(position, element):
+    def make_var(func):
+        def inner(position, element):
+                var = tkt.StringVar(root, name=f'v_{element}')
+                field_variables[element]=var
+                if element in KEY_ELEMENTS:
+                    var.trace('w', update)
+                widget = func(position, element)
+                widget.config(textvariable=var)
+        return inner
 
+    @make_var
+    def make_entry(position, element):
+        entry = tkt.Entry(root, borderwidth=2, width=60, name=f'e_{element}')
+        entry.grid(row=position, column=1, sticky=tkt.W, padx = 2)
+        return entry
+        
+    # def make_option_menu(position, element):
+
+
+
+    def make_row(position, element):
         make_label(position, element)
         make_entry(position, element)
         if element in DEFOULT_PATTERNS:
             make_button(position, element)
         pass
 
-    value_var = tkt.StringVar(root)
-    value_var.trace('w', update)
-
     for i, k in enumerate(settings):
         make_row(i, k)
     
     confirm_button = tkt.Button(root, text='Confirm', name='confirm', command= get_settings)
-    confirm_button.grid(row=i+1, column=0, columnspan=3)
-    
+    confirm_button.grid(row=i+1, column=2, padx=2)
+    confirm_button = tkt.Button(root, text='Reset', name='reset', command= reset)
+    confirm_button.grid(row=i+1, column=1, pady=2, sticky=tkt.E, padx=2)
     pass
    
 
 def settings_root(settings):     
     main_root = tkt.Tk()
+    main_root.title('Settings')
+    main_root.resizable(width=0, height=0)
+
     work_frame = tkt.Frame(main_root)
     work_frame.grid(row=0, column=0)
     make_fields(settings, work_frame)
     main_root.mainloop()
+
     pass
 
 settings_root(MAIN_SETTINGS)
-
-        
-# root = tkt.Tk()
-
-
-
-
-
-
-# confirm = tkt.Button(text='Confirm', name='confirm')
-# confirm.grid(row=i+1, column=0, columnspan=3)
-
-
-
-
-
-
-
-
-
-
-# root_elements = root.children.values()
-# for a, b in zip(
-#     filter(lambda y: isinstance(y, tkt.Label), root_elements),
-#     filter(lambda y: isinstance(y, tkt.Entry), root_elements)):
-#     # print(a.cget('text'))
-#     # print(b.get())
-
-
-
-
-
-

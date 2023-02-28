@@ -1,7 +1,8 @@
 from pathlib import Path
 from openpyxl import load_workbook
 from win32com.client import Dispatch
-from funcs_for_settings import GRAPH_SYMBOL
+
+GRAPH_SYMBOL = 'gr'
 
 def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     '''
@@ -19,13 +20,13 @@ def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     wb.close()
     return info
 
-def export_image(exel_file: Path, sheet_name='gr') -> dict[str:Path]: #декоратор создания папки
+def export_image(exel_file: Path, sheet_name) -> dict[str:Path]: 
     '''
     Save all charts in Exel sheet to the folder, with Exel_sheet name
     Return dictionary with images name and path
     '''
     graphs = {}
-    gr_folder = exel_file.parent.joinpath(sheet_name)
+    gr_folder = exel_file.parent.joinpath(GRAPH_SYMBOL)
     gr_folder.mkdir(exist_ok=True)
     app = Dispatch('Excel.Application')
     wb = app.Workbooks.Open(Filename=exel_file)
@@ -34,7 +35,7 @@ def export_image(exel_file: Path, sheet_name='gr') -> dict[str:Path]: #деко�
     i = 1
     gr_sheet = wb.Worksheets(sheet_name)
     for chartObject in gr_sheet.ChartObjects():
-        gr_name = f'{sheet_name}{i}.png'
+        gr_name = f'{GRAPH_SYMBOL}{i}.png'
         gr_path = gr_folder.joinpath(gr_name)
         graphs[gr_name] = gr_path
         chartObject.Chart.Export(gr_path)

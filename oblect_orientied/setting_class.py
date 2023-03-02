@@ -26,7 +26,7 @@ class SettinsElement:
 
     def is_value_exist(func):
         def inner(self):
-            if self.value:
+            if self.tk_variable.get():
                 return func(self)
             return None
         return inner
@@ -43,13 +43,17 @@ class SettinsElement:
         entry = tk.Entry(root, name=f'e_{self.name}', textvariable=self.tk_variable, **FIELD_CONFIGURATION)
         return entry
 
+    def get_value(self):
+        value = self.tk_variable.get()
+        return value
+    
     def make_button(self, root):
         pass
 
-    def get_base(self):
+    def get_base(self, *args):
         pass
 
-    def get_defoult_value(self):
+    def set_defoult_value(self):
         pass
 
     def get_confirmation(self):
@@ -61,20 +65,34 @@ class PathElement(SettinsElement):
         self.pattern = f'*{word_pattern}*'
         self.base = None
 
+    def get_value(self):
+        value = Path(self.tk_variable.get())
+        return value
+
     @SettinsElement.is_value_exist
     def get_confirmation(self):
-        return self.value.exists()
+        value = self.get_value()
+        return value.exists()
     
     def get_base(self, file: Path):
         self.base = file.parent
         pass
     
-    def get_defoult_value(self):
+    def set_defoult_value(self):
         try:
-            self.value = next(self.base.glob(self.pattern))
+            self.tk_variable.set(next(self.base.glob(self.pattern)))
         except:
-            return None
-        return self.value
+            pass
+        pass
+    
+    def choose_value(self):
+        pass
+    
+    def make_button(self, root):
+        command = self.choose_value
+        button = tk.Button(root, text=BUTTON_TEXT, name=f'b_{self.name}', command=command)
+        return button
+    
 
 class DocElement(PathElement):
     def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
@@ -82,8 +100,9 @@ class DocElement(PathElement):
         self.pattern = f'*{word_pattern}*{DOC_EXTENSION}'
     
     def choose_value(self):
-        self.value = Path(filedialog.askopenfilename(filetypes=[('Word documents', f'*{DOC_EXTENSION}')]))
-        return self.value
+        value = filedialog.askopenfilename(filetypes=[('Word documents', f'*{DOC_EXTENSION}')])
+        self.tk_variable.set(value)
+        pass
     
 class ExelElement(PathElement):
     def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
@@ -91,16 +110,18 @@ class ExelElement(PathElement):
         self.pattern = f'*{word_pattern}*.{EXEL_EXTENSION}'
     
     def choose_value(self):
-        self.value = Path(filedialog.askopenfilename(filetypes=[('Exel documents', f'*{EXEL_EXTENSION}')]))
-        return self.value
+        value = filedialog.askopenfilename(filetypes=[('Exel documents', f'*{EXEL_EXTENSION}')])
+        self.tk_variable.set(value)
+        pass
 
 class FolderElement(PathElement):
     def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
         super().__init__(name, word_pattern, value, base, tk_variable)
 
     def choose_value(self):
-        self.value = Path(filedialog.askdirectory())
-        return self.value
+        value  = filedialog.askdirectory()
+        self.tk_variable.set(value)
+        pass
 
 class SheetElement(SettinsElement):
     def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
@@ -120,19 +141,21 @@ class SheetElement(SettinsElement):
     @SettinsElement.is_value_exist
     @is_base_exel
     def get_confirmation(self):
-        return is_sheet_exist(self.base, self.value)
+        value = self.get_value()
+        return is_sheet_exist(self.base, value)
 
-    def get_defoult_value(self):
-        return super().get_defoult_value()
+    def set_defoult_value(self):
+        return super().set_defoult_value()
     
 class FirstSheetElement(SheetElement):
     def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
         super().__init__(name, value, base, tk_variable)
 
     @SheetElement.is_base_exel
-    def get_defoult_value(self):
-        self.value = first_sheet_name(self.base)
-        return self.value
+    def set_defoult_value(self):
+        value = first_sheet_name(self.base)
+        self.tk_variable.set(value)
+        pass
 
 class NamedSheetElement(SheetElement):
     def __init__(self, name, pattern, value=None, base=None, tk_variable=None) -> None:
@@ -140,10 +163,10 @@ class NamedSheetElement(SheetElement):
         self.pattern = pattern
 
     @SheetElement.is_base_exel
-    def get_defoult_value(self):
+    def set_defoult_value(self):
         if is_sheet_exist(self.base, self.pattern):
-            self.value = first_sheet_name(self.base)
-            return self.value
+            self.tk_variable.set(self.pattern)
+            pass
 
 class Setting():
     def __init__(self, setting_name, data) -> None:
@@ -151,6 +174,37 @@ class Setting():
         self.data = {x.name: x for x in data}
         self.key_element = data[0]
         pass
+
+    def make_setting_root(self):
+        main_root = tk.Tk()
+        main_root.title(self.name)
+        main_root.resizable(width=0, height=0)
+        return main_root
+    
+    def update(self, *args):
+        file = self.key_element.get_value()
+        for element in filter(lambda x: x != self.key_element, self.data.values()):
+            element.get_base(file)
+            element.set_defoult_value()
+        pass
+    
+    def add_trace(self):
+        self.key_element.tk_variable.trace('w', self.update)
+    
+    def make_fields(self, root):
+        for i, element in enumerate(self.data.values()):
+            label = element.make_label(root)
+            element.make_var(root)
+            entry = element.make_entry(root)
+            button = element.make_button(root)
+
+            label.grid(row=i, column=0, sticky=tk.E)
+            entry.grid(row=i, column=1, sticky=tk.W, padx = 2)
+            if button:
+                button.grid(row=i, column=2)
+        pass
+
+
 
 DATA_MAIN_SETTINGS = (
     ExelElement('exel', TEMPLATE_SYMBOL),
@@ -162,10 +216,8 @@ DATA_MAIN_SETTINGS = (
 )
 
 main_settings = Setting('Main setting', DATA_MAIN_SETTINGS)
-print(main_settings.key_element.name)
-# a = DocElement('asd', 'бланк')
-# a.get_base(Path(r'D:\test\1.xlsx'))
-# print(a.get_defoult_value())
-# print(a.value)
-# print(a.get_confirmation())
+main_root = main_settings.make_setting_root()
+main_settings.make_fields(main_root)
+main_settings.add_trace()
+main_root.mainloop()
 

@@ -1,24 +1,16 @@
 from pathlib import Path
-from work_with_exel import is_sheet_exist, first_sheet_name, GRAPH_SYMBOL
+from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names, GRAPH_SYMBOL
 
 TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
 EXTENTION = ['Sheet with charts']
     
-# def get_defoult_doc(base: Path):
-#     pattern = f'*{TEMPLATE_SYMBOL}*.docx'
-#     output = next(base.glob(pattern))
-#     return output
+def folder_base(file: Path):
+    base = file.parent
+    return base
 
-# def get_defoult_exel(base:Path):
-#     pattern = f'*{TEMPLATE_SYMBOL}*.xlsx'
-#     output = next(base.glob(pattern))
-#     return output
-
-# def get_defoult_gr_folder(base:Path):
-#     pattern = GRAPH_SYMBOL
-#     output = next(base.glob(pattern))
-#     return output
+def file_base(file: Path):
+    return file
 
 def get_defoult_by_pattern(base: Path, pattern: str):
     try:
@@ -31,6 +23,11 @@ def get_defoult_infosheet(base:Path, *args):
     if base.suffix == '.xlsx':
         return first_sheet_name(base)
     return None
+
+def get_sheet_names(base: Path, *args):
+    if base.suffix == '.xlsx':
+        return sheet_names(base)
+    return []
 
 def get_defoult_chartsheet(base:Path, *args):
     if base.suffix == '.xlsx' and is_sheet_exist(base, GRAPH_SYMBOL):
@@ -110,9 +107,6 @@ def no_checking(value, *args):
     if value:
         return True
     return False
-
-print(is_path_exist('word', ''))
-
 
 
 

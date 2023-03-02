@@ -11,12 +11,6 @@ MAIN_SETTINGS = {
     'Result folder': None
 }
 
-TEMPLATE_SETTINGS = {
-    'base_folder': None,
-    'template Word': None,
-    'folder with tamplates': None,
-}
-
 BASE = {
     'Exel': 'base_folder',
     'Word': 'base_folder',

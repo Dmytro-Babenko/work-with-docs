@@ -1,11 +1,11 @@
 
 from work_with_exel import get_info_from_exel, export_image
-from docxtpl import DocxTemplate
+from docxtpl import DocxTemplate, InlineImage
 from clean_folder.sort import find_free_name
+from docx.shared import Cm
 from pathlib import Path
 
-
-def make_it(main_settings):
+def make_word_document(main_settings):
     # main_settings = get_settings(settings)
     exel_path = Path(main_settings['exel'])
     doc_path = Path(main_settings['word'])
@@ -34,5 +34,23 @@ def make_it(main_settings):
             continue
     pass
 
-if __name__ == '__main__':
-    main(MAIN_SETTINGS)
+def create_image_template(doc: DocxTemplate, folder: Path, symb: str) -> None:
+    placeholders = {}
+    i = 1
+    for image in folder.iterdir():
+        if image.suffix == '.png':
+            placeholder = InlineImage(doc, str(image.absolute()), Cm(5))
+            place = f'{symb}{i}'
+            placeholders[place] = placeholder
+            i += 1
+    return placeholders
+
+def make_template(template_settings):
+    doc_path = template_settings['template Word']
+    temp_image_folder = template_settings['folder with tamplates']
+    doc = DocxTemplate(doc_path)
+    placeholders = create_image_template(doc, temp_image_folder, temp_image_folder.name)
+    doc.render(placeholders)
+    doc.save(doc_path)
+    pass
+

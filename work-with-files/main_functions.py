@@ -34,6 +34,7 @@ def make_word_document(main_settings):
             continue
     pass
 
+
 def create_image_template(doc: DocxTemplate, folder: Path, symb: str) -> None:
     placeholders = {}
     i = 1

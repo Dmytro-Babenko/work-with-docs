@@ -3,6 +3,14 @@ from openpyxl import load_workbook
 from win32com.client import Dispatch
 
 GRAPH_SYMBOL = 'gr'
+EXEL_EXTENSION = '.xlsx'
+
+def is_base_exel(func):
+    def inner(self):
+        if self.base and self.base.suffix == EXEL_EXTENSION:
+            return func(self)
+        return None
+    return inner
 
 def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     '''

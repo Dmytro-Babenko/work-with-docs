@@ -1,10 +1,9 @@
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names,GRAPH_SYMBOL
+from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names, GRAPH_SYMBOL, EXEL_EXTENSION
 import tkinter as tk
 
 DOC_EXTENSION = '.docx'
-EXEL_EXTENSION = '.xlsx'
 TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
 BUTTON_TEXT = 'Choose'
@@ -16,26 +15,9 @@ FIELD_CONFIGURATION = {
     'width': 80
 }
 
-class OptionMenu(tk.OptionMenu):
-    def __init__(self, *args, **kw):
-        self._command = kw.get("command")
-        tk.OptionMenu.__init__(self, *args, **kw)
-        
-    def add_options(self, var, *nums):
-        for num in nums:
-
-            self["menu"].add_command(
-                label=num,command=tk._setit(var, num, self._command)
-            )
-
-    def remove_options(self):
-            # var.set('') # remove default selection only, not the full list
-            self['menu'].delete(0,'end') # remove full list 
-
 class SettinsElement:
-    def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
+    def __init__(self, name, base=None, tk_variable=None) -> None:
         self.name = name
-        self.value = value
         self.base = base
         self.tk_variable = tk_variable
         pass
@@ -48,7 +30,7 @@ class SettinsElement:
         return inner
     
     def make_label(self, root):
-        label = tk.Label(root, name=f'l_{self.name}', text=self.name)
+        label = tk.Label(root, name=f'l_{self.name}', text=self.name.capitalize())
         return label
     
     def make_var(self, root):
@@ -81,8 +63,8 @@ class SettinsElement:
 
 
 class PathElement(SettinsElement):
-    def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, value, base, tk_variable)
+    def __init__(self, name, word_pattern, base=None, tk_variable=None) -> None:
+        super().__init__(name, base, tk_variable)
         self.pattern = f'*{word_pattern}*'
         self.base = None
 
@@ -116,8 +98,8 @@ class PathElement(SettinsElement):
     
 
 class DocElement(PathElement):
-    def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, word_pattern, value, base, tk_variable)
+    def __init__(self, name, word_pattern, base=None, tk_variable=None) -> None:
+        super().__init__(name, word_pattern, base, tk_variable)
         self.pattern = f'*{word_pattern}*{DOC_EXTENSION}'
     
     def choose_value(self):
@@ -126,8 +108,8 @@ class DocElement(PathElement):
         pass
     
 class ExelElement(PathElement):
-    def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, word_pattern, value, base, tk_variable)
+    def __init__(self, name, word_pattern, base=None, tk_variable=None) -> None:
+        super().__init__(name, word_pattern, base, tk_variable)
         self.pattern = f'*{word_pattern}*.{EXEL_EXTENSION}'
     
     def choose_value(self):
@@ -136,8 +118,8 @@ class ExelElement(PathElement):
         pass
 
 class FolderElement(PathElement):
-    def __init__(self, name, word_pattern, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, word_pattern, value, base, tk_variable)
+    def __init__(self, name, word_pattern, base=None, tk_variable=None) -> None:
+        super().__init__(name, word_pattern, base, tk_variable)
 
     def choose_value(self):
         value  = filedialog.askdirectory()
@@ -145,9 +127,9 @@ class FolderElement(PathElement):
         pass
 
 class SheetElement(SettinsElement):
-    def __init__(self, name, value=None, base=None, tk_variable=None, options=None) -> None:
-        super().__init__(name, value, base, tk_variable)
-        self.options = options
+    def __init__(self, name, base=None, tk_variable=None) -> None:
+        super().__init__(name, base, tk_variable)
+        self.options = None
     
     def is_base_exel(func):
         def inner(self):
@@ -167,7 +149,6 @@ class SheetElement(SettinsElement):
         return is_sheet_exist(self.base, value)
     
     def make_button(self, root):
-        # command = self.choose_value
         button = tk.Menubutton(
             root, text="Choose",borderwidth=2, relief="raised"
             )
@@ -187,8 +168,8 @@ class SheetElement(SettinsElement):
         pass
     
 class FirstSheetElement(SheetElement):
-    def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, value, base, tk_variable)
+    def __init__(self, name, base=None, tk_variable=None) -> None:
+        super().__init__(name, base, tk_variable)
 
     @SheetElement.is_base_exel
     def set_defoult_value(self):
@@ -197,8 +178,8 @@ class FirstSheetElement(SheetElement):
         pass
 
 class NamedSheetElement(SheetElement):
-    def __init__(self, name, pattern, value=None, base=None, tk_variable=None) -> None:
-        super().__init__(name, value, base, tk_variable)
+    def __init__(self, name, pattern, base=None, tk_variable=None) -> None:
+        super().__init__(name, base, tk_variable)
         self.pattern = pattern
 
     @SheetElement.is_base_exel
@@ -281,12 +262,3 @@ DATA_MAIN_SETTINGS = (
     NamedSheetElement('sheet with charts', GRAPH_SYMBOL),
     SettinsElement('result file name'),
 )
-
-main_settings = Setting('Main setting', DATA_MAIN_SETTINGS)
-main_root = main_settings.make_setting_root()
-# work_frame = tk.Frame(main_root)
-# work_frame.grid(row=0, column=0, columnspan=2)
-main_settings.make_fields(main_root)
-main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
-# main_settings.add_trace_to_key()
-main_root.mainloop()

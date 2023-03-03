@@ -1,14 +1,12 @@
-from collections import UserDict
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from work_with_exel import is_sheet_exist, first_sheet_name, GRAPH_SYMBOL
+from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names,GRAPH_SYMBOL
 import tkinter as tk
 
 DOC_EXTENSION = '.docx'
 EXEL_EXTENSION = '.xlsx'
 TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
-EXTENTION = ['Sheet with charts']
 BUTTON_TEXT = 'Choose'
 CONFIRM = 'Confirm'
 RESET = 'Reset'
@@ -17,6 +15,22 @@ FIELD_CONFIGURATION = {
     'borderwidth': 2, 
     'width': 80
 }
+
+class OptionMenu(tk.OptionMenu):
+    def __init__(self, *args, **kw):
+        self._command = kw.get("command")
+        tk.OptionMenu.__init__(self, *args, **kw)
+        
+    def add_options(self, var, *nums):
+        for num in nums:
+
+            self["menu"].add_command(
+                label=num,command=tk._setit(var, num, self._command)
+            )
+
+    def remove_options(self):
+            # var.set('') # remove default selection only, not the full list
+            self['menu'].delete(0,'end') # remove full list 
 
 class SettinsElement:
     def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
@@ -44,10 +58,13 @@ class SettinsElement:
     def make_entry(self, root):
         entry = tk.Entry(root, name=f'e_{self.name}', textvariable=self.tk_variable, **FIELD_CONFIGURATION)
         return entry
-
+    
     def get_value(self):
         value = self.tk_variable.get()
         return value
+    
+    def set_options(self, *args):
+        pass
     
     def make_button(self, root):
         pass
@@ -128,8 +145,9 @@ class FolderElement(PathElement):
         pass
 
 class SheetElement(SettinsElement):
-    def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
+    def __init__(self, name, value=None, base=None, tk_variable=None, options=None) -> None:
         super().__init__(name, value, base, tk_variable)
+        self.options = options
     
     def is_base_exel(func):
         def inner(self):
@@ -147,9 +165,26 @@ class SheetElement(SettinsElement):
     def get_confirmation(self):
         value = self.get_value()
         return is_sheet_exist(self.base, value)
-
-    def set_defoult_value(self):
-        return super().set_defoult_value()
+    
+    def make_button(self, root):
+        # command = self.choose_value
+        button = tk.Menubutton(
+            root, text="Choose",borderwidth=2, relief="raised"
+            )
+        menu = tk.Menu(button, tearoff=False)
+        button.configure(menu=menu)
+        self.options = menu
+        return button
+    
+    @is_base_exel
+    def set_options(self):
+        options_lst = sheet_names(self.base)
+        self.options.delete(0, tk.END)
+        for opt in options_lst:
+            self.options.add_radiobutton(
+                label=opt, variable=self.tk_variable, value=opt
+                )
+        pass
     
 class FirstSheetElement(SheetElement):
     def __init__(self, name, value=None, base=None, tk_variable=None) -> None:
@@ -190,6 +225,7 @@ class Setting():
         for element in filter(lambda x: x != self.key_element, self.data.values()):
             element.get_base(file)
             element.set_defoult_value()
+            element.set_options()
         pass
     
     def add_trace_to_key(self):
@@ -214,8 +250,6 @@ class Setting():
             responce = messagebox.askokcancel(message='You realy confirm it?')    
             if responce:
                 self.exe_program()
-                # main_func = choose_func(key_element, MAIN_FUNCS)
-                # main_func(settings)
         pass
 
     def exe_program(self):
@@ -229,18 +263,15 @@ class Setting():
             button = element.make_button(root)
 
             label.grid(row=i, column=0, sticky=tk.E)
-            entry.grid(row=i, column=1, sticky=tk.W, padx = 2)
+            entry.grid(row=i, column=2, sticky=tk.W, padx = 2)
             if button:
-                button.grid(row=i, column=2)
+                button.grid(row=i, column=1)
 
         confirm_button = tk.Button(root, text=CONFIRM, name=CONFIRM.lower(), command=self.get_settings)
         confirm_button.grid(row=i+1, column=2, padx=2, pady=2, sticky=tk.W)
         confirm_button = tk.Button(root, text=RESET, name=RESET.lower(), command=self.reset)
         confirm_button.grid(row=i+1, column=1, pady=2, sticky=tk.E)
         pass
-
-# class MainSetting
-# class TemplateSetting
 
 DATA_MAIN_SETTINGS = (
     ExelElement('exel', TEMPLATE_SYMBOL),
@@ -251,17 +282,11 @@ DATA_MAIN_SETTINGS = (
     SettinsElement('result file name'),
 )
 
-# main_settings = Setting('Main setting', DATA_MAIN_SETTINGS)
-# main_root = main_settings.make_setting_root()
+main_settings = Setting('Main setting', DATA_MAIN_SETTINGS)
+main_root = main_settings.make_setting_root()
 # work_frame = tk.Frame(main_root)
 # work_frame.grid(row=0, column=0, columnspan=2)
-# main_settings.make_fields(work_frame)
-# main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
-# # main_settings.add_trace_to_key()
-# main_root.mainloop()
-
-# sheet = NamedSheetElement('name', GRAPH_SYMBOL)
-# root = tk.Tk()
-# sheet.get_base(Path(r'D:\test\бланк тренд 1.xlsx'))
-# sheet.tk_variable = tk.StringVar(root, value='gr')
-# print(sheet.get_confirmation())
+main_settings.make_fields(main_root)
+main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
+# main_settings.add_trace_to_key()
+main_root.mainloop()

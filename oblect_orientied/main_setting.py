@@ -1,9 +1,7 @@
 from setting_class import Setting, DATA_MAIN_SETTINGS
 from work_with_exel import get_info_from_exel, export_image
-from docxtpl import DocxTemplate, InlineImage
+from docxtpl import DocxTemplate
 from clean_folder.sort import find_free_name
-from docx.shared import Cm
-from pathlib import Path
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:
@@ -32,11 +30,13 @@ class MainSettings(Setting):
                 continue
         pass
 
-main_settings = MainSettings('Main setting', DATA_MAIN_SETTINGS)
-main_root = main_settings.make_setting_root()
-# work_frame = tk.Frame(main_root)
-# work_frame.grid(row=0, column=0, columnspan=2)
-main_settings.make_fields(main_root)
-main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
-# main_settings.add_trace_to_key()
-main_root.mainloop()
+
+def main():
+    main_settings = MainSettings('Main settings', DATA_MAIN_SETTINGS)
+    main_root = main_settings.make_setting_root()
+    main_settings.make_fields(main_root)
+    main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
+    main_root.mainloop()
+
+if __name__ == '__main__':
+    main()

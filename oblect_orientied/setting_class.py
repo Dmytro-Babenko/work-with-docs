@@ -1,9 +1,10 @@
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names, GRAPH_SYMBOL, EXEL_EXTENSION
+from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names, GRAPH_SYMBOL
 import tkinter as tk
 
 DOC_EXTENSION = '.docx'
+EXEL_EXTENSION = '.xlsx'
 TEMPLATE_SYMBOL = 'бланк'
 RESULT_FOLDER_NAME = 'виконані'
 BUTTON_TEXT = 'Choose'
@@ -261,4 +262,9 @@ DATA_MAIN_SETTINGS = (
     FirstSheetElement('sheet with information'),
     NamedSheetElement('sheet with charts', GRAPH_SYMBOL),
     SettinsElement('result file name'),
+)
+
+DATA_TEMPLATE_SETTINGS = (
+    DocElement('template word', TEMPLATE_SYMBOL),
+    FolderElement('folder with tamplates', GRAPH_SYMBOL),
 )

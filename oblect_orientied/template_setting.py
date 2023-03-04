@@ -9,7 +9,7 @@ class TemplateSetting(Setting):
         super().__init__(setting_name, data)
 
     def exe_program(self):
-        doc_path = self.data['template Word'].get_value()
+        doc_path = self.data['template word'].get_value()
         temp_image_folder = self.data['folder with tamplates'].get_value()
         doc = DocxTemplate(doc_path)
 
@@ -22,6 +22,7 @@ class TemplateSetting(Setting):
                 placeholders[place] = placeholder
                 i += 1
         
+        print(placeholders)
         doc.render(placeholders)
         doc.save(doc_path)
         pass

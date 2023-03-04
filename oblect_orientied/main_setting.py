@@ -1,7 +1,8 @@
 from setting_class import Setting, DATA_MAIN_SETTINGS
-from work_with_exel import get_info_from_exel, export_image
-from docxtpl import DocxTemplate
+from work_with_exel import get_info_from_exel, export_image, GRAPH_SYMBOL
+from docxtpl import DocxTemplate, InlineImage
 from clean_folder.sort import find_free_name
+from pathlib import Path
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:
@@ -15,19 +16,21 @@ class MainSettings(Setting):
         result_file_name = self.data['result file name'].get_value()
         result_folder = self.data['result folder'].get_value()
 
+        doc = DocxTemplate(doc_path)
         info = get_info_from_exel(exel_path, text_sheet)
         graphs = export_image(exel_path, graph_sheet)
+        graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}
+        info.update(graphs)
         doc_result_path = find_free_name(result_file_name, result_folder, doc_path.suffix)[1]
 
-        doc = DocxTemplate(doc_path)
         doc.render(info)
         doc.save(doc_result_path)
-        for plate, graph in graphs.items():
-            try:
-                doc.replace_pic(plate, graph)
-                doc.save(doc_result_path)
-            except ValueError:
-                continue
+        # for plate, graph in graphs.items():
+        #     try:
+        #         doc.replace_pic(plate, graph)
+        #         doc.save(doc_result_path)
+        #     except ValueError:
+        #         continue
         pass
 
 

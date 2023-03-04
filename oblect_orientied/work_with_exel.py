@@ -25,7 +25,7 @@ def export_image(exel_file: Path, sheet_name) -> dict[str:Path]:
     Save all charts in Exel sheet to the folder, with Exel_sheet name
     Return dictionary with images name and path
     '''
-    graphs = {}
+    graphs = []
     gr_folder = exel_file.parent.joinpath(GRAPH_SYMBOL)
     gr_folder.mkdir(exist_ok=True)
     app = Dispatch('Excel.Application')
@@ -35,9 +35,9 @@ def export_image(exel_file: Path, sheet_name) -> dict[str:Path]:
     i = 1
     gr_sheet = wb.Worksheets(sheet_name)
     for chartObject in gr_sheet.ChartObjects():
-        gr_name = f'{GRAPH_SYMBOL}{i}.png'
-        gr_path = gr_folder.joinpath(gr_name)
-        graphs[gr_name] = gr_path
+        # gr_name = f'{GRAPH_SYMBOL}{i}.png'
+        gr_path = gr_folder.joinpath(f'{GRAPH_SYMBOL}{i}.png')
+        graphs.append(gr_path)
         chartObject.Chart.Export(gr_path)
         i += 1
     wb.Close(SaveChanges=False, Filename=str(exel_file))

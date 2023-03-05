@@ -1,11 +1,12 @@
 from pathlib import Path
 from tkinter import filedialog, messagebox
-from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names, GRAPH_SYMBOL
+from work_with_exel import is_sheet_exist, first_sheet_name, sheet_names
 import tkinter as tk
 
 DOC_EXTENSION = '.docx'
 EXEL_EXTENSION = '.xlsx'
 TEMPLATE_SYMBOL = 'бланк'
+GRAPH_SYMBOL = 'gr'
 RESULT_FOLDER_NAME = 'виконані'
 BUTTON_TEXT = 'Choose'
 CONFIRM = 'Confirm'

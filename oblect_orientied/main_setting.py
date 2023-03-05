@@ -1,9 +1,9 @@
 import re
-from setting_class import Setting, DATA_MAIN_SETTINGS
+from setting_class import Setting, DATA_MAIN_SETTINGS, GRAPH_SYMBOL
 from openpyxl import worksheet, load_workbook, Workbook
-from work_with_exel import get_info_from_exel, export_image, GRAPH_SYMBOL
 from docxtpl import DocxTemplate, InlineImage
 from clean_folder.sort import find_free_name
+from win32com.client import Dispatch
 from pathlib import Path
 
 class ExelWordbook():
@@ -23,7 +23,7 @@ class ExelWordbook():
                                 for row in sheet[ref] if row[0].value]
         return info
 
-    def get_info_from_defnames(book: Workbook):
+    def get_info_from_defnames(self, book: Workbook):
         info = {}
         for name, defn_object in book.defined_names.items():
             destination = next(defn_object.destinations)
@@ -35,7 +35,7 @@ class ExelWordbook():
         return info
 
 
-    def get_info_from_exel(self) -> dict[str:any]:
+    def get_info(self) -> dict[str:any]:
         '''
         Get information from the Exel sheet.
         Return dictionary
@@ -46,7 +46,30 @@ class ExelWordbook():
 
         info = self.get_info_from_tables(ws)
         info.update(self.get_info_from_defnames(wb))
+        wb.close()
         return info
+    
+    def export_image(self) -> dict[str:Path]: 
+        '''
+        Save all charts in Exel sheet to the folder, with Exel_sheet name
+        Return dictionary with images name and path
+        '''
+        graphs = []
+        gr_folder = self.path.parent.joinpath(GRAPH_SYMBOL)
+        gr_folder.mkdir(exist_ok=True)
+        app = Dispatch('Excel.Application')
+        wb = app.Workbooks.Open(Filename=self.path)
+        app.DisplayAlerts = False
+
+        i = 1
+        gr_sheet = wb.Worksheets(self.graphsheet)
+        for chartObject in gr_sheet.ChartObjects():
+            gr_path = gr_folder.joinpath(f'{GRAPH_SYMBOL}{i}.png')
+            graphs.append(gr_path)
+            chartObject.Chart.Export(gr_path)
+            i += 1
+        wb.Close(SaveChanges=False, Filename=str(self.path))
+        return graphs
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:
@@ -61,20 +84,14 @@ class MainSettings(Setting):
         result_folder = self.data['result folder'].get_value()
 
         doc = DocxTemplate(doc_path)
-        info = get_info_from_exel(exel_path, text_sheet)
-        graphs = export_image(exel_path, graph_sheet)
+        exel = ExelWordbook(exel_path, text_sheet, graph_sheet)
+        info = exel.get_info()
+        graphs = exel.export_image()
         graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}
         info.update(graphs)
         doc_result_path = find_free_name(result_file_name, result_folder, doc_path.suffix)[1]
-
         doc.render(info)
         doc.save(doc_result_path)
-        # for plate, graph in graphs.items():
-        #     try:
-        #         doc.replace_pic(plate, graph)
-        #         doc.save(doc_result_path)
-        #     except ValueError:
-        #         continue
         pass
 
 

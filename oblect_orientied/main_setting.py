@@ -1,8 +1,52 @@
+import re
 from setting_class import Setting, DATA_MAIN_SETTINGS
+from openpyxl import worksheet, load_workbook, Workbook
 from work_with_exel import get_info_from_exel, export_image, GRAPH_SYMBOL
 from docxtpl import DocxTemplate, InlineImage
 from clean_folder.sort import find_free_name
 from pathlib import Path
+
+class ExelWordbook():
+    def __init__(self, path: Path, infosheet: str, graphsheet: str) -> None:
+        self.path = path
+        self.infosheet = infosheet
+        self.graphsheet = graphsheet
+        pass
+
+    def get_info_from_tables(self, sheet: worksheet) -> dict[str:list]:
+        info = {}
+        for table in sheet.tables.values():    
+            headers = table.column_names
+            ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
+            info[table.name] = [{header: str(cell.value).replace('.', ',') if isinstance(cell.value, float) else cell.value
+                                for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
+                                for row in sheet[ref] if row[0].value]
+        return info
+
+    def get_info_from_defnames(book: Workbook):
+        info = {}
+        for name, defn_object in book.defined_names.items():
+            destination = next(defn_object.destinations)
+            sheet_name, coordinates = destination
+            value = book[sheet_name][coordinates].value
+            if isinstance(value, float):
+                value = str(value).replace('.', ',')
+            info[name] = value
+        return info
+
+
+    def get_info_from_exel(self) -> dict[str:any]:
+        '''
+        Get information from the Exel sheet.
+        Return dictionary
+        '''
+        wb = load_workbook(self.path, data_only=True)
+        ws = wb[self.infosheet]
+        info = {}
+
+        info = self.get_info_from_tables(ws)
+        info.update(self.get_info_from_defnames(wb))
+        return info
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:

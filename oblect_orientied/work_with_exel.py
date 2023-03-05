@@ -1,24 +1,51 @@
 from pathlib import Path
-from openpyxl import load_workbook, Workbook
+import re
+from openpyxl import load_workbook, Workbook, worksheet
 from win32com.client import Dispatch
 
 GRAPH_SYMBOL = 'gr'
 
+def get_info_from_tables(sheet: worksheet) -> dict[str:list]:
+    info = {}
+    for table in sheet.tables.values():    
+        headers = table.column_names
+        ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
+        info[table.name] = [{header: str(cell.value).replace('.', ',') if isinstance(cell.value, float) else cell.value
+                            for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
+                            for row in sheet[ref] if row[0].value]
+    return info
+
+def get_info_from_defnames(book: Workbook):
+    info = {}
+    for name, defn_object in book.defined_names.items():
+        destination = next(defn_object.destinations)
+        sheet_name, coordinates = destination
+        value = book[sheet_name][coordinates].value
+        if isinstance(value, float):
+            value = str(value).replace('.', ',')
+        info[name] = value
+    return info
+
+
 def get_info_from_exel(exel_file: Path, sheet_name='info') -> dict[str:any]:
     '''
     Get information from the Exel sheet.
-    Information shouuld be wtitten in first two column.
-    Return dictionary (key - firsrt_column, value -second)
+    Return dictionary
     '''
-    wb = load_workbook(exel_file, data_only=True, read_only=True)
+    wb = load_workbook(exel_file, data_only=True)
     info = {}
     ws = wb[sheet_name]
-    for k, v in ws.iter_rows(values_only=True):
-        if isinstance(v, float):
-            v = str(v).replace('.', ',')
-        info[k] = v
-    wb.close()
+
+    info = get_info_from_tables(ws)
+    info.update(get_info_from_defnames(wb))
     return info
+
+    # for k, v in ws.iter_rows(values_only=True):
+    #     if isinstance(v, float):
+    #         v = str(v).replace('.', ',')
+    #     info[k] = v
+    # wb.close()
+    # return info
 
 def export_image(exel_file: Path, sheet_name) -> dict[str:Path]: 
     '''

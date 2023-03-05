@@ -99,8 +99,10 @@ class MainSettings(Setting):
 def main():
     main_settings = MainSettings('Main settings', DATA_MAIN_SETTINGS)
     main_root = main_settings.make_setting_root()
-    main_settings.make_fields(main_root)
-    main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
+    pass_frame = main_settings.make_frame(main_root)
+    main_settings.make_password_root(pass_frame)
+    # main_settings.make_fields(main_root)
+    # main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
     main_root.mainloop()
 
 if __name__ == '__main__':

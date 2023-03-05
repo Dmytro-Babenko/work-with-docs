@@ -8,15 +8,21 @@ EXEL_EXTENSION = '.xlsx'
 TEMPLATE_SYMBOL = 'бланк'
 GRAPH_SYMBOL = 'gr'
 RESULT_FOLDER_NAME = 'виконані'
+
 BUTTON_TEXT = 'Choose'
 CONFIRM = 'Confirm'
 RESET = 'Reset'
 CONFIRM_MESSAGE = 'You realy confirm it?'
 DONE_MESSAGE = 'DONE'
 
+PASS_VARIABLE = 'pass_var'
+PASSWORD = 'bvv23015'
+PASSWORD_BUTTON = 'Confirm password'
+PASSWORD_ERROR = 'Wrong password'
+
 FIELD_CONFIGURATION = {
     'borderwidth': 2, 
-    'width': 80
+    'width': 100
 }
 
 class SettinsElement:
@@ -205,6 +211,11 @@ class Setting():
         main_root.resizable(width=0, height=0)
         return main_root
     
+    def make_frame(self, root):
+        frame = tk.Frame(root)
+        frame.grid(row=0, column=0)
+        return frame
+    
     def update(self, *args):
         file = self.key_element.get_value()
         for element in filter(lambda x: x != self.key_element, self.data.values()):
@@ -241,6 +252,26 @@ class Setting():
     def exe_program(self):
         pass
 
+    def confirm_password(self, root: tk.Frame):
+        password = root.getvar(name=PASS_VARIABLE)
+        main_root = root.master
+        if password == PASSWORD:
+            main_frame = self.make_frame(main_root)
+            self.make_fields(main_frame)
+            root.destroy()
+        else:
+            messagebox.showerror(message=PASSWORD_ERROR)
+        pass
+
+    def make_password_root(self, root):
+        pass_label = tk.Label(root, text='Password:')
+        pass_var = tk.StringVar(root, name=PASS_VARIABLE)
+        pass_entry = tk.Entry(root, show='*', textvariable=pass_var, **FIELD_CONFIGURATION)
+        pass_button = tk.Button(root, text=PASSWORD_BUTTON, command=lambda: self.confirm_password(root))
+        pass_label.grid(row=0, column=0)
+        pass_entry.grid(row=0, column=1)
+        pass_button.grid(row=1, column=0, columnspan=2)
+
     def make_fields(self, root):
         for i, element in enumerate(self.data.values()):
             label = element.make_label(root)
@@ -253,6 +284,7 @@ class Setting():
             if button:
                 button.grid(row=i, column=1)
 
+        self.key_element.tk_variable.trace_add('write', self.update)
         confirm_button = tk.Button(root, text=CONFIRM, name=CONFIRM.lower(), command=self.get_settings)
         confirm_button.grid(row=i+1, column=2, padx=2, pady=2, sticky=tk.W)
         confirm_button = tk.Button(root, text=RESET, name=RESET.lower(), command=self.reset)

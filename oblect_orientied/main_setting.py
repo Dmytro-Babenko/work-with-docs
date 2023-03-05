@@ -18,9 +18,10 @@ class ExelWordbook():
         for table in sheet.tables.values():    
             headers = table.column_names
             ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
-            info[table.name] = [{header: str(cell.value).replace('.', ',') if isinstance(cell.value, float) else cell.value
-                                for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
-                                for row in sheet[ref] if row[0].value]
+            info[table.name] = [
+                {header: str(round(cell.value, 3)).replace('.', ',') if isinstance(cell.value, float) else cell.value
+                for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
+                for row in sheet[ref] if row[0].value]
         return info
 
     def get_info_from_defnames(self, book: Workbook):
@@ -30,7 +31,7 @@ class ExelWordbook():
             sheet_name, coordinates = destination
             value = book[sheet_name][coordinates].value
             if isinstance(value, float):
-                value = str(value).replace('.', ',')
+                value = str(round(value, 3)).replace('.', ',')
             info[name] = value
         return info
 

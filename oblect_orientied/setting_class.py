@@ -11,6 +11,8 @@ RESULT_FOLDER_NAME = 'виконані'
 BUTTON_TEXT = 'Choose'
 CONFIRM = 'Confirm'
 RESET = 'Reset'
+CONFIRM_MESSAGE = 'You realy confirm it?'
+DONE_MESSAGE = 'DONE'
 
 FIELD_CONFIGURATION = {
     'borderwidth': 2, 
@@ -230,9 +232,10 @@ class Setting():
             return True
         
         if is_all_confirm(self):
-            responce = messagebox.askokcancel(message='You realy confirm it?')    
+            responce = messagebox.askokcancel(message=CONFIRM_MESSAGE)    
             if responce:
                 self.exe_program()
+                messagebox.showinfo(message=DONE_MESSAGE)
         pass
 
     def exe_program(self):

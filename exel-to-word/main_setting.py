@@ -21,7 +21,8 @@ class ExelWordbook():
             info[table.name] = [
                 {header: str(round(cell.value, 3)).replace('.', ',') if isinstance(cell.value, float) else cell.value
                 for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
-                for row in sheet[ref] if row[0].value]
+                for row in sheet[ref] if row[0].value
+                ]
         return info
 
     def get_info_from_defnames(self, book: Workbook):
@@ -101,8 +102,6 @@ def main():
     main_root = main_settings.make_setting_root()
     pass_frame = main_settings.make_frame(main_root)
     main_settings.make_password_root(pass_frame)
-    # main_settings.make_fields(main_root)
-    # main_settings.key_element.tk_variable.trace_add('write', main_settings.update)
     main_root.mainloop()
 
 if __name__ == '__main__':

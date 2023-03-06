@@ -14,15 +14,18 @@ CONFIRM = 'Confirm'
 RESET = 'Reset'
 CONFIRM_MESSAGE = 'You realy confirm it?'
 DONE_MESSAGE = 'DONE'
+FIELD_CONFIGURATION = {
+    'borderwidth': 2, 
+    'width': 100
+}
 
 PASS_VARIABLE = 'pass_var'
 PASSWORD = 'bvv23015'
 PASSWORD_BUTTON = 'Confirm password'
 PASSWORD_ERROR = 'Wrong password'
-
-FIELD_CONFIGURATION = {
+PASS_CONFIGURATION = {
     'borderwidth': 2, 
-    'width': 100
+    'width': 20
 }
 
 class SettinsElement:
@@ -266,10 +269,10 @@ class Setting():
     def make_password_root(self, root):
         pass_label = tk.Label(root, text='Password:')
         pass_var = tk.StringVar(root, name=PASS_VARIABLE)
-        pass_entry = tk.Entry(root, show='*', textvariable=pass_var, **FIELD_CONFIGURATION)
+        pass_entry = tk.Entry(root, show='*', textvariable=pass_var, **PASS_CONFIGURATION)
         pass_button = tk.Button(root, text=PASSWORD_BUTTON, command=lambda: self.confirm_password(root))
         pass_label.grid(row=0, column=0)
-        pass_entry.grid(row=0, column=1)
+        pass_entry.grid(row=0, column=1, padx=5)
         pass_button.grid(row=1, column=0, columnspan=2)
 
     def make_fields(self, root):

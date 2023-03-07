@@ -6,9 +6,10 @@ from clean_folder.sort import find_free_name
 from win32com.client import Dispatch
 from pathlib import Path
 
-class ExelWordbook():
-    def __init__(self, path: Path, infosheet: str, graphsheet: str) -> None:
-        self.path = path
+class ExelComplex():
+    def __init__(self, main_path:Path, graph_path:Path, infosheet:str, graphsheet:str) -> None:
+        self.main_path = main_path
+        self.graph_path = graph_path
         self.infosheet = infosheet
         self.graphsheet = graphsheet
         pass
@@ -42,7 +43,7 @@ class ExelWordbook():
         Get information from the Exel sheet.
         Return dictionary
         '''
-        wb = load_workbook(self.path, data_only=True)
+        wb = load_workbook(self.main_path, data_only=True)
         ws = wb[self.infosheet]
         info = {}
 
@@ -60,7 +61,7 @@ class ExelWordbook():
         gr_folder = self.path.parent.joinpath(GRAPH_SYMBOL)
         gr_folder.mkdir(exist_ok=True)
         app = Dispatch('Excel.Application')
-        wb = app.Workbooks.Open(Filename=self.path)
+        wb = app.Workbooks.Open(Filename=self.main_path)
         app.DisplayAlerts = False
 
         i = 1
@@ -70,8 +71,49 @@ class ExelWordbook():
             graphs.append(gr_path)
             chartObject.Chart.Export(gr_path)
             i += 1
-        wb.Close(SaveChanges=False, Filename=str(self.path))
+        wb.Close(SaveChanges=False, Filename=str(self.main_path))
+        app.Quit()
         return graphs
+    
+    def change_graph_file(self):
+
+        main_wb = load_workbook(self.main_path, data_only=True)
+        main_ws = main_wb[self.graphsheet]
+        table = main_ws.tables[GRAPH_SYMBOL]
+
+        graph_wb = load_workbook(self.graph_path)
+        graph_ws = graph_wb.active()
+        graph_ws.title = GRAPH_SYMBOL
+        
+        for i, row in enumerate(main_ws[table.ref]):
+            for j, cell in enumerate(row):
+                graph_ws.cell(row=i+1, column=j+1).value = cell.value
+
+        main_wb.close()
+        main_ws.save(self.graph_path)
+
+    def copy_paste_charts(self, document_path):
+        excel = Dispatch('Excel.Application')
+        word = Dispatch('Word.Application')
+
+        wb = excel.Workbooks.Open(self.main_path)
+        ws = wb.Worksheets(GRAPH_SYMBOL)
+        document = word.Documents.Open(document_path)
+
+        for i, chart in enumerate(ws.ChartObjects()):
+            try:
+                chart.Copy()
+                bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
+                bookmark.Range.Paste()
+            except Exception:
+                continue
+
+        wb.Close(False)
+        excel.Quit()
+        document.SaveAs(document_path)
+        document.Close()
+        word.Quit()
+
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:
@@ -86,7 +128,7 @@ class MainSettings(Setting):
         result_folder = self.data['result folder'].get_value()
 
         doc = DocxTemplate(doc_path)
-        exel = ExelWordbook(exel_path, text_sheet, graph_sheet)
+        exel = ExelComplex(exel_path, text_sheet, graph_sheet)
         info = exel.get_info()
         graphs = exel.export_image()
         graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}

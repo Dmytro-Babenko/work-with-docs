@@ -1,84 +1,56 @@
-from docxtpl import DocxTemplate, InlineImage
+import win32com.client
 from openpyxl import load_workbook
-from openpyxl.workbook.defined_name import DefinedName
-from openpyxl.utils import quote_sheetname, absolute_coordinate
-import re
-from pathlib import Path
-from win32com.client import Dispatch
 
-def a():
-    doc = DocxTemplate(r'D:\test\бланк — копия.docx')
+def copy_paste(path_exel, path_doc):
+    excel = win32com.client.Dispatch('Excel.Application')
+    word = win32com.client.Dispatch('Word.Application')
 
-    context = {'gr1': InlineImage(doc, r'D:\test\gr\gr1.png'), 'gr2': InlineImage(doc, r'D:\test\gr\gr2.png'),
-            'data': [{'name': 'Dima', 'age': 15}, {'name': 'Anton', 'age': 20}]}
-    print(context)
+    wb = excel.Workbooks.Open(path_exel)
+    ws = wb.Worksheets('gr')
+    document = word.Documents.Open(path_doc)
 
-    doc.render(context)
-    doc.save(r'D:\test\2.docx')
+    i = 0
+    for chart in ws.ChartObjects():
+        i+=1
+        try:
+            chart.Copy()
+            bookmark = document.Bookmarks(f'gr{i}')
+            bookmark.Range.Paste()
+        except Exception as ex:
+            print(type(ex))
+            continue
 
+    wb.Close(False)
+    excel.Quit()
+    document.SaveAs(r'D:\test\test.docx')
+    document.Close()
+    word.Quit()
 
-work_book = load_workbook(r'D:\test\бланк тренд 1 — копия.xlsx', data_only=True)
-sheet = work_book['main']
+path1 = r'D:\test\1.xlsx'
+path2 = r'D:\test\gr.xlsx'
 
-# table = sheet.tables['table1']
-print(sheet.tables)
+wb1 = load_workbook(path1, data_only=True)
+wb2 = load_workbook(path2)
+ws = wb1['gr']
+table = ws.tables['gr']
+ws2 = wb2['gr']
+for i, row in enumerate(ws[table.ref]):
+    for j, cell in enumerate(row):
+        ws2.cell(row=i+1, column=j+1).value = cell.value
 
-# headers = table.column_names
+# data = [[cell.value for cell in row] for row in ws[table.ref]]
+# print(data)
+wb1.close()
+wb2.save(path2)
 
-# arr = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
+# wb = load_workbook(path2)
+# ws = wb.active
+# height = len(data)
+# width = len(data[0])
+# for i in range(1, height+1):
+#     for j in range(1, width+1):
+#         ws.cell(row=i, column=j).value = data[i-1][j-1]
+# wb.save(path2)
+# path_doc = r'D:\test\копия.docx'
 
-# dct = {table.name: [{header: str(cell.value).replace('.', ',') if isinstance(cell.value, float) else cell.value
-#                     for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
-#                     for row in sheet[arr] if row[0].value]}
-# # print(sheet[arr])
-
-# defn = work_book.defined_names
-
-# dct2 = {name: work_book[next(obj.destinations)[0]][next(obj.destinations)[1]].value 
-#         for name, obj in defn.items()}
-# print(dct2)
-
-# for name, obj in defn.items():
-#     gen = next(obj.destinations)
-#     sheet_name = gen[0]
-#     coor = gen[1]
-#     value = work_book[sheet_name][coor].value
-#     dct[name] = value
-#     # print(sheet[coor].value)
-# work_book.close()
-
-# doc = DocxTemplate(r'D:\test\бланк — копия — копия.docx')
-
-
-def export_image(exel_file: Path, sheet_name) -> dict[str:Path]: 
-    '''
-    Save all charts in Exel sheet to the folder, with Exel_sheet name
-    Return dictionary with images name and path
-    '''
-    graphs = []
-    gr_folder = exel_file.parent.joinpath('gr')
-    gr_folder.mkdir(exist_ok=True)
-    app = Dispatch('Excel.Application')
-    wb = app.Workbooks.Open(Filename=exel_file)
-    app.DisplayAlerts = False
-
-    i = 1
-    gr_sheet = wb.Worksheets(sheet_name)
-    for chartObject in gr_sheet.ChartObjects():
-        # gr_name = f'{GRAPH_SYMBOL}{i}.png'
-        gr_path = gr_folder.joinpath(f'gr{i}.png')
-        graphs.append(gr_path)
-        chartObject.Chart.Export(gr_path)
-        i += 1
-    wb.Close(SaveChanges=False, Filename=str(exel_file))
-
-    return graphs
-
-print(export_image(Path(r'D:\test\бланк тренд 1 — копия.xlsx'), 'main'))
-
-context = dct
-# print(context)
-
-
-# doc.render(context)
-# doc.save(r'D:\test\2.docx')
+# copy_paste(path2, path_doc)

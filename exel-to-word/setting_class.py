@@ -123,7 +123,7 @@ class DocElement(PathElement):
 class ExelElement(PathElement):
     def __init__(self, name, word_pattern, base=None, tk_variable=None) -> None:
         super().__init__(name, word_pattern, base, tk_variable)
-        self.pattern = f'*{word_pattern}*.{EXEL_EXTENSION}'
+        self.pattern = f'*{word_pattern}*{EXEL_EXTENSION}'
     
     def choose_value(self):
         value = filedialog.askopenfilename(filetypes=[('Exel documents', f'*{EXEL_EXTENSION}')])
@@ -297,6 +297,7 @@ class Setting():
 DATA_MAIN_SETTINGS = (
     ExelElement('exel', TEMPLATE_SYMBOL),
     DocElement('word', TEMPLATE_SYMBOL),
+    ExelElement('exel with charts', GRAPH_SYMBOL),
     FolderElement('result folder', RESULT_FOLDER_NAME),
     FirstSheetElement('sheet with information'),
     NamedSheetElement('sheet with charts', GRAPH_SYMBOL),

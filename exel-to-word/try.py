@@ -36,7 +36,11 @@ table = ws.tables['gr']
 ws2 = wb2['gr']
 for i, row in enumerate(ws[table.ref]):
     for j, cell in enumerate(row):
-        ws2.cell(row=i+1, column=j+1).value = cell.value
+        if cell.value == ' ':
+            ws2.cell(row=i+1, column=j+1).value = None
+        else: 
+            ws2.cell(row=i+1, column=j+1).value = cell.value
+        # ws2.cell(row=i+1, column=j+1).value = cell.value if cell.value != ' ' else None
 
 # data = [[cell.value for cell in row] for row in ws[table.ref]]
 # print(data)

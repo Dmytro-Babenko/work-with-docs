@@ -76,43 +76,45 @@ class ExelComplex():
         return graphs
     
     def change_graph_file(self):
-
         main_wb = load_workbook(self.main_path, data_only=True)
         main_ws = main_wb[self.graphsheet]
         table = main_ws.tables[GRAPH_SYMBOL]
 
         graph_wb = load_workbook(self.graph_path)
-        graph_ws = graph_wb.active()
-        graph_ws.title = GRAPH_SYMBOL
+        graph_ws = graph_wb.active
+        # graph_ws.title = GRAPH_SYMBOL
         
-        for i, row in enumerate(main_ws[table.ref]):
+        ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
+        for i, row in enumerate(main_ws[ref]):
             for j, cell in enumerate(row):
-                graph_ws.cell(row=i+1, column=j+1).value = cell.value
+                graph_ws.cell(row=i+1, column=j+1).value = cell.value if cell.value != ' ' else None
 
         main_wb.close()
-        main_ws.save(self.graph_path)
+        graph_wb.save(self.graph_path)
 
-    def copy_paste_charts(self, document_path):
+    def copy_paste_charts(self, document_path: Path):
         excel = Dispatch('Excel.Application')
         word = Dispatch('Word.Application')
 
-        wb = excel.Workbooks.Open(self.main_path)
-        ws = wb.Worksheets(GRAPH_SYMBOL)
-        document = word.Documents.Open(document_path)
+        try:
+            wb = excel.Workbooks.Open(self.graph_path)
+            ws = wb.Worksheets(1)
+            d_path = str(document_path.absolute())
+            document = word.Documents.Open(d_path)
 
-        for i, chart in enumerate(ws.ChartObjects()):
-            try:
-                chart.Copy()
-                bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
-                bookmark.Range.Paste()
-            except Exception:
-                continue
-
-        wb.Close(False)
-        excel.Quit()
-        document.SaveAs(document_path)
-        document.Close()
-        word.Quit()
+            for i, chart in enumerate(ws.ChartObjects()):
+                try:
+                    chart.Copy()
+                    bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
+                    bookmark.Range.Paste()
+                except Exception:
+                    continue
+        finally:
+            wb.Close(False)
+            excel.Quit()
+            document.SaveAs(d_path)
+            document.Close()
+            word.Quit()
 
 
 class MainSettings(Setting):
@@ -122,20 +124,23 @@ class MainSettings(Setting):
     def exe_program(self):
         exel_path = self.data['exel'].get_value()
         doc_path = self.data['word'].get_value()
+        exel_gr_path = self.data['exel with charts'].get_value()
         text_sheet = self.data['sheet with information'].get_value()
         graph_sheet = self.data['sheet with charts'].get_value()
         result_file_name = self.data['result file name'].get_value()
         result_folder = self.data['result folder'].get_value()
 
         doc = DocxTemplate(doc_path)
-        exel = ExelComplex(exel_path, text_sheet, graph_sheet)
+        exel = ExelComplex(exel_path, exel_gr_path, text_sheet, graph_sheet)
         info = exel.get_info()
-        graphs = exel.export_image()
-        graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}
-        info.update(graphs)
+        # graphs = exel.export_image()
+        # graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}
+        # info.update(graphs)
         doc_result_path = find_free_name(result_file_name, result_folder, doc_path.suffix)[1]
         doc.render(info)
         doc.save(doc_result_path)
+        exel.change_graph_file()
+        exel.copy_paste_charts(doc_result_path)
         pass
 
 

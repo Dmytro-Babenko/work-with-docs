@@ -14,15 +14,26 @@ class ExelComplex():
         self.graphsheet = graphsheet
         pass
 
+    def charts_check(func):
+        def inner(self, *args):
+            main_wb = load_workbook(self.main_path, data_only=True)
+            main_ws = main_wb[self.graphsheet]
+            if GRAPH_SYMBOL in main_ws.tables:
+                main_wb.close
+                func(self, *args)
+            main_wb.close
+            pass
+        return inner
+
     def get_info_from_tables(self, sheet: worksheet) -> dict[str:list]:
         info = {}
         for table in sheet.tables.values():    
             headers = table.column_names
-            ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
+            ref = re.sub(r'(\d+):', lambda m: f'{int(m.group(1))+1}:', table.ref)
             info[table.name] = [
                 {header: str(round(cell.value, 3)).replace('.', ',') if isinstance(cell.value, float) else cell.value
                 for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
-                for row in sheet[ref] if row[0].value
+                for row in sheet[ref] if str(row[0].value).strip()
                 ]
         return info
 
@@ -75,6 +86,7 @@ class ExelComplex():
         app.Quit()
         return graphs
     
+    @charts_check
     def change_graph_file(self):
         main_wb = load_workbook(self.main_path, data_only=True)
         main_ws = main_wb[self.graphsheet]
@@ -91,7 +103,9 @@ class ExelComplex():
 
         main_wb.close()
         graph_wb.save(self.graph_path)
+        pass
 
+    @charts_check
     def copy_paste_charts(self, document_path: Path):
         excel = Dispatch('Excel.Application')
         word = Dispatch('Word.Application')
@@ -99,7 +113,7 @@ class ExelComplex():
         try:
             wb = excel.Workbooks.Open(self.graph_path)
             ws = wb.Worksheets(1)
-            d_path = str(document_path.absolute())
+            d_path = str(document_path)
             document = word.Documents.Open(d_path)
 
             for i, chart in enumerate(ws.ChartObjects()):

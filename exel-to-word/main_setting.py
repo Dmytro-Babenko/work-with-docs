@@ -33,7 +33,7 @@ class ExelComplex():
             info[table.name] = [
                 {header: str(round(cell.value, 3)).replace('.', ',') if isinstance(cell.value, float) else cell.value
                 for header, cell in filter(lambda t: t[1].value, zip(headers, row))}
-                for row in sheet[ref] if str(row[0].value).strip()
+                for row in sheet[ref] if row[0].value and str(row[0].value).strip()
                 ]
         return info
 
@@ -109,26 +109,33 @@ class ExelComplex():
     def copy_paste_charts(self, document_path: Path):
         excel = Dispatch('Excel.Application')
         word = Dispatch('Word.Application')
-
+        d_path = str(document_path)
         try:
             wb = excel.Workbooks.Open(self.graph_path)
-            ws = wb.Worksheets(1)
-            d_path = str(document_path)
-            document = word.Documents.Open(d_path)
-
-            for i, chart in enumerate(ws.ChartObjects()):
-                try:
-                    chart.Copy()
-                    bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
-                    bookmark.Range.Paste()
-                except Exception:
-                    continue
-        finally:
-            wb.Close(False)
+        except:
             excel.Quit()
-            document.SaveAs(d_path)
-            document.Close()
-            word.Quit()
+        else:
+            try:
+                document = word.Documents.Open(d_path)
+            except:
+                word.Quit()
+            else:
+                try:
+                    ws = wb.Worksheets(1)
+                    for i, chart in enumerate(ws.ChartObjects()):
+                        try:
+                            chart.Copy()
+                            bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
+                            bookmark.Range.Paste()
+                        except Exception:
+                            continue
+                finally:
+                    wb.Close(False)
+                    excel.Quit()
+                    document.SaveAs(d_path)
+                    document.Close()
+                    word.Quit()
+        pass
 
 
 class MainSettings(Setting):

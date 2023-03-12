@@ -1,7 +1,7 @@
 import re
 from setting_class import Setting, DATA_MAIN_SETTINGS, GRAPH_SYMBOL
 from openpyxl import worksheet, load_workbook, Workbook
-from docxtpl import DocxTemplate, InlineImage
+from docxtpl import DocxTemplate
 from clean_folder.sort import find_free_name
 from win32com.client import Dispatch
 from pathlib import Path
@@ -12,7 +12,25 @@ class ExelComplex():
         self.graph_path = graph_path
         self.infosheet = infosheet
         self.graphsheet = graphsheet
+        self.app = None
+        self.graphfile = None
         pass
+
+    def __enter__(self):
+        try:
+            self.app = Dispatch('Excel.Application')
+            self.graphfile = self.app.Workbooks.Open(self.graph_path)
+            return self.graphfile
+        except Exception as e:
+            self.__exit__(type(e), e, e.__traceback__)
+            raise e
+
+    
+    def __exit__(self, exception_type, exception_value, traceback):
+        if self.graphfile:
+            self.graphfile.Close(False)
+        if self.app:
+            self.app.Quit()
 
     def charts_check(func):
         def inner(self, *args):
@@ -94,7 +112,6 @@ class ExelComplex():
 
         graph_wb = load_workbook(self.graph_path)
         graph_ws = graph_wb.active
-        # graph_ws.title = GRAPH_SYMBOL
         
         ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
         for i, row in enumerate(main_ws[ref]):
@@ -107,36 +124,39 @@ class ExelComplex():
 
     @charts_check
     def copy_paste_charts(self, document_path: Path):
-        excel = Dispatch('Excel.Application')
-        word = Dispatch('Word.Application')
-        d_path = str(document_path)
-        try:
-            wb = excel.Workbooks.Open(self.graph_path)
-        except:
-            excel.Quit()
-        else:
-            try:
-                document = word.Documents.Open(d_path)
-            except:
-                word.Quit()
-            else:
-                try:
-                    ws = wb.Worksheets(1)
-                    for i, chart in enumerate(ws.ChartObjects()):
-                        try:
-                            chart.Copy()
-                            bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
-                            bookmark.Range.Paste()
-                        except Exception:
-                            continue
-                finally:
-                    wb.Close(False)
-                    excel.Quit()
-                    document.SaveAs(d_path)
-                    document.Close()
-                    word.Quit()
+        with self as wb:
+            with WordFile(document_path) as document:
+                ws = wb.Worksheets(1)
+                for i, chart in enumerate(ws.ChartObjects()):
+                    try:
+                        chart.Copy()
+                        bookmark = document.Bookmarks(f'{GRAPH_SYMBOL}{i+1}')
+                        bookmark.Range.Paste()
+                    except Exception:
+                        continue
         pass
 
+class WordFile:
+    def __init__(self, path) -> None:
+        self.path = str(path)
+        self.app = None
+        self.file = None
+        pass
+
+    def __enter__(self):
+        try:
+            self.app = Dispatch('Word.Application')
+            self.file = self.app.Documents.Open(self.path)
+            return self.file
+        except Exception as e:
+            self.__exit__(type(e), e, e.__traceback__)
+            raise e
+    
+    def __exit__(self, exception_type, exception_value, traceback):
+        if self.file:
+            self.file.Close(SaveChanges=True)
+        if self.app:
+            self.app.Quit()
 
 class MainSettings(Setting):
     def __init__(self, setting_name, data) -> None:
@@ -163,7 +183,6 @@ class MainSettings(Setting):
         exel.change_graph_file()
         exel.copy_paste_charts(doc_result_path)
         pass
-
 
 def main():
     main_settings = MainSettings('Main settings', DATA_MAIN_SETTINGS)

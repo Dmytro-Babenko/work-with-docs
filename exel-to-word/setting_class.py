@@ -13,7 +13,8 @@ BUTTON_TEXT = 'Choose'
 CONFIRM = 'Confirm'
 RESET = 'Reset'
 CONFIRM_MESSAGE = 'You realy confirm it?'
-DONE_MESSAGE = 'DONE'
+DONE_MESSAGE = 'Successfully completed'
+ERROR_MESSAGE = 'Something go wrong'
 FIELD_CONFIGURATION = {
     'borderwidth': 2, 
     'width': 100
@@ -248,8 +249,12 @@ class Setting():
         if is_all_confirm(self):
             responce = messagebox.askokcancel(message=CONFIRM_MESSAGE)    
             if responce:
-                self.exe_program()
-                messagebox.showinfo(message=DONE_MESSAGE)
+                try:
+                    self.exe_program()
+                except:
+                    messagebox.showerror(message=ERROR_MESSAGE)
+                else:
+                    messagebox.showinfo(message=DONE_MESSAGE)
         pass
 
     def exe_program(self):

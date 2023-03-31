@@ -1,10 +1,27 @@
 import re
-from setting_class import Setting, DATA_MAIN_SETTINGS, GRAPH_SYMBOL
+from setting_class import GRAPH_SYMBOL
 from openpyxl import worksheet, load_workbook, Workbook
-from docxtpl import DocxTemplate
-from clean_folder.sort import find_free_name
 from win32com.client import Dispatch
 from pathlib import Path
+
+CONFIRM = 'Confirm'
+RESET = 'Reset'
+CONFIRM_MESSAGE = 'You realy confirm it?'
+DONE_MESSAGE = 'Successfully completed'
+ERROR_MESSAGE = 'Something go wrong'
+FIELD_CONFIGURATION = {
+    'borderwidth': 2, 
+    'width': 100
+}
+
+PASS_VARIABLE = 'pass_var'
+PASSWORD = 'bvv23015'
+PASSWORD_BUTTON = 'Confirm password'
+PASSWORD_ERROR = 'Wrong password'
+PASS_CONFIGURATION = {
+    'borderwidth': 2, 
+    'width': 20
+}
 
 class ExelComplex():
     def __init__(self, main_path:Path, graph_path:Path, infosheet:str, graphsheet:str) -> None:
@@ -31,9 +48,6 @@ class ExelComplex():
             self.graphfile.Close(False)
         if self.app:
             self.app.Quit()
-
-
-        
 
     def charts_check(func):
         def inner(self, *args):
@@ -115,7 +129,6 @@ class ExelComplex():
 
         graph_wb = load_workbook(self.graph_path)
         graph_ws = graph_wb.active
-        # graph_ws.title = GRAPH_SYMBOL
         
         ref = re.sub(r'(\d):', lambda m: f'{int(m.group(1))+1}:', table.ref)
         for i, row in enumerate(main_ws[ref]):
@@ -161,45 +174,3 @@ class WordFile:
             self.file.Close(SaveChanges=True)
         if self.app:
             self.app.Quit()
-
-
-class MainSettings(Setting):
-    def __init__(self, setting_name, data) -> None:
-        super().__init__(setting_name, data)
-
-    def exe_program(self):
-        exel_path = self.data['exel'].get_value()
-        doc_path = self.data['word'].get_value()
-        exel_gr_path = self.data['exel with charts'].get_value()
-        text_sheet = self.data['sheet with information'].get_value()
-        graph_sheet = self.data['sheet with charts'].get_value()
-        result_file_name = self.data['result file name'].get_value()
-        result_folder = self.data['result folder'].get_value()
-
-        doc = DocxTemplate(doc_path)
-        exel = ExelComplex(exel_path, exel_gr_path, text_sheet, graph_sheet)
-        info = exel.get_info()
-        # graphs = exel.export_image()
-        # graphs = {x.stem: InlineImage(doc, str(x)) for x in graphs}
-        # info.update(graphs)
-        doc_result_path = find_free_name(result_file_name, result_folder, doc_path.suffix)[1]
-        doc.render(info)
-        doc.save(doc_result_path)
-        exel.change_graph_file()
-        exel.copy_paste_charts(doc_result_path)
-        pass
-
-
-def main():
-    main_settings = MainSettings('Main settings', DATA_MAIN_SETTINGS)
-    main_root = main_settings.make_setting_root()
-    pass_frame = main_settings.make_frame(main_root)
-    main_settings.make_password_root(pass_frame)
-    main_root.mainloop()
-
-if __name__ == '__main__':
-    main()
-    # exel = ExelComplex(main_path='adafa', graph_path=r'D:\test\бланк розподіл\gr.xlsx', infosheet='sa', graphsheet='sa')
-    # with exel as file:
-    #     print('Oke')
-    # a = input('asdas')

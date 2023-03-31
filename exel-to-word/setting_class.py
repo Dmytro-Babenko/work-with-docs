@@ -10,23 +10,9 @@ GRAPH_SYMBOL = 'gr'
 RESULT_FOLDER_NAME = 'виконані'
 
 BUTTON_TEXT = 'Choose'
-CONFIRM = 'Confirm'
-RESET = 'Reset'
-CONFIRM_MESSAGE = 'You realy confirm it?'
-DONE_MESSAGE = 'Successfully completed'
-ERROR_MESSAGE = 'Something go wrong'
 FIELD_CONFIGURATION = {
     'borderwidth': 2, 
     'width': 100
-}
-
-PASS_VARIABLE = 'pass_var'
-PASSWORD = 'bvv23015'
-PASSWORD_BUTTON = 'Confirm password'
-PASSWORD_ERROR = 'Wrong password'
-PASS_CONFIGURATION = {
-    'borderwidth': 2, 
-    'width': 20
 }
 
 class SettinsElement:
@@ -34,6 +20,10 @@ class SettinsElement:
         self.name = name
         self.base = base
         self.tk_variable = tk_variable
+        pass
+
+    def clear_vr(self):
+        self.tk_variable.set('')
         pass
 
     def is_value_exist(func):
@@ -96,10 +86,11 @@ class PathElement(SettinsElement):
         pass
     
     def set_defoult_value(self):
+        
         try:
             self.tk_variable.set(next(self.base.glob(self.pattern)))
         except:
-            pass
+            self.clear_vr()
         pass
     
     def choose_value(self):
@@ -149,6 +140,8 @@ class SheetElement(SettinsElement):
         def inner(self):
             if self.base and self.base.suffix == EXEL_EXTENSION:
                 return func(self)
+            self.clear_vr()
+            self.options.delete(0, tk.END)
             return None
         return inner
     
@@ -202,103 +195,6 @@ class NamedSheetElement(SheetElement):
             self.tk_variable.set(self.pattern)
             pass
 
-class Setting():
-    def __init__(self, setting_name, data) -> None:
-        self.name = setting_name
-        self.data = {x.name: x for x in data}
-        self.key_element = data[0]
-        pass
-
-    def make_setting_root(self):
-        main_root = tk.Tk()
-        main_root.title(self.name)
-        main_root.resizable(width=0, height=0)
-        return main_root
-    
-    def make_frame(self, root):
-        frame = tk.Frame(root)
-        frame.grid(row=0, column=0)
-        return frame
-    
-    def update(self, *args):
-        file = self.key_element.get_value()
-        for element in filter(lambda x: x != self.key_element, self.data.values()):
-            element.get_base(file)
-            element.set_defoult_value()
-            element.set_options()
-        pass
-    
-    def add_trace_to_key(self):
-        self.key_element.tk_variable.trace('w', self.update)
-
-    def reset(self):
-        for element in self.data.values():
-            element.tk_variable.set('')
-        pass
-
-    def get_settings(self):
-        def is_all_confirm(self):
-            for element in self.data.values():
-                confirmation = element.get_confirmation()
-                if not confirmation:
-                    error = f'{element.name.upper()}: irrelevant value'
-                    messagebox.showerror(title='ERROR', message=error)
-                    return False
-            return True
-        
-        if is_all_confirm(self):
-            responce = messagebox.askokcancel(message=CONFIRM_MESSAGE)    
-            if responce:
-                try:
-                    self.exe_program()
-                except:
-                    messagebox.showerror(message=ERROR_MESSAGE)
-                else:
-                    messagebox.showinfo(message=DONE_MESSAGE)
-        pass
-
-    def exe_program(self):
-        pass
-
-    def confirm_password(self, root: tk.Frame):
-        password = root.getvar(name=PASS_VARIABLE)
-        main_root = root.master
-        if password == PASSWORD:
-            main_frame = self.make_frame(main_root)
-            self.make_fields(main_frame)
-            root.destroy()
-        else:
-            messagebox.showerror(message=PASSWORD_ERROR)
-        pass
-
-    def make_password_root(self, root):
-        pass_label = tk.Label(root, text='Password:')
-        pass_var = tk.StringVar(root, name=PASS_VARIABLE)
-        pass_entry = tk.Entry(root, show='*', textvariable=pass_var, **PASS_CONFIGURATION)
-        pass_button = tk.Button(root, text=PASSWORD_BUTTON, command=lambda: self.confirm_password(root))
-        pass_label.grid(row=0, column=0)
-        pass_entry.grid(row=0, column=1, padx=5)
-        pass_button.grid(row=1, column=0, columnspan=2)
-
-    def make_fields(self, root):
-        for i, element in enumerate(self.data.values()):
-            label = element.make_label(root)
-            element.make_var(root)
-            entry = element.make_entry(root)
-            button = element.make_button(root)
-
-            label.grid(row=i, column=0, sticky=tk.E)
-            entry.grid(row=i, column=2, sticky=tk.W, padx = 2)
-            if button:
-                button.grid(row=i, column=1)
-
-        self.key_element.tk_variable.trace_add('write', self.update)
-        confirm_button = tk.Button(root, text=CONFIRM, name=CONFIRM.lower(), command=self.get_settings)
-        confirm_button.grid(row=i+1, column=2, padx=2, pady=2, sticky=tk.W)
-        confirm_button = tk.Button(root, text=RESET, name=RESET.lower(), command=self.reset)
-        confirm_button.grid(row=i+1, column=1, pady=2, sticky=tk.E)
-        pass
-
 DATA_MAIN_SETTINGS = (
     ExelElement('exel', TEMPLATE_SYMBOL),
     DocElement('word', TEMPLATE_SYMBOL),
@@ -313,3 +209,5 @@ DATA_TEMPLATE_SETTINGS = (
     DocElement('template word', TEMPLATE_SYMBOL),
     FolderElement('folder with tamplates', GRAPH_SYMBOL),
 )
+
+
